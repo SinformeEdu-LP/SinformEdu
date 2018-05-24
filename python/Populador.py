@@ -34,7 +34,15 @@ DEPUTADOS_CONFIG = {
     'insert_command': "INSERT"
 }
 
-ORGAO_SUP_CONFIG = {
+def preprocess_proposta_csv_row(csv_rows):
+    desc_orgao_sup = FORMAT_REMOVE_ACCENTS(csv_rows[5])
+
+    if desc_orgao_sup != "MINISTERIO DA EDUCACAO":
+        csv_rows = []
+
+    return csv_rows
+
+'''ORGAO_SUP_CONFIG = {
     'csv_file_name': 'siconv_proposta',
     'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
     'csv_columns_indexes': [4, 5],
@@ -43,12 +51,13 @@ ORGAO_SUP_CONFIG = {
     'insert_value_format': "({}, '{}')",
     'row_formatters': [FORMAT_NUMBER, FORMAT_IDENTITY],
     'insert_command': "REPLACE"
-}
+}'''
 
 ORGAO_CONFIG = {
     'csv_file_name': 'siconv_proposta',
     'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
     'csv_columns_indexes': [12, 13],
+    'csv_preprocess_row': preprocess_proposta_csv_row,
     'table_name': 'orgao',
     'columns_to_insert': ["COD_ORGAO", "DESC_ORGAO"],
     'insert_value_format': "({}, '{}')",
@@ -60,6 +69,7 @@ MUNICIPIO_CONFIG = {
     'csv_file_name': 'siconv_proposta',
     'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
     'csv_columns_indexes': [2, 3],
+    'csv_preprocess_row': preprocess_proposta_csv_row,
     'table_name': 'municipio',
     'columns_to_insert': ["MUNIC_PROPONENTE", "COD_MUNIC_IBGE"],
     'insert_value_format': "('{}', {})",
@@ -71,6 +81,7 @@ PROPONENTE_CONFIG = {
     'csv_file_name': 'siconv_proposta',
     'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
     'csv_columns_indexes': [1, 2, 3, 6, 15, 16, 17, 18, 19],
+    'csv_preprocess_row': preprocess_proposta_csv_row,
     'table_name': 'proponente',
     'columns_to_insert': ['UF_PROPONENTE', 'MUNIC_PROPONENTE', 'COD_MUNIC_IBGE', 'NATUREZA_JURIDICA', 'IDENTIF_PROPONENTE', 'NM_PROPONENTE',
     'CEP_PROPONENTE', 'ENDERECO_PROPONENTE', 'BAIRRO_PROPONENTE'],
@@ -84,6 +95,7 @@ PROPOSTA_CONFIG = {
     'csv_file_name': 'siconv_proposta',
     'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
     'csv_columns_indexes': [0, 4, 7, 11, 12, 14, 15, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+    'csv_preprocess_row': preprocess_proposta_csv_row,
     'table_name': 'proposta',
     'columns_to_insert': ["ID_PROPOSTA", "COD_ORGAO_SUP", "NR_PROPOSTA", "DIA_PROPOSTA",
     "COD_ORGAO", "MODALIDADE", "IDENTIF_PROPONENTE", "NM_BANCO", "SITUACAO_CONTA", "SITUACAO_PROJETO_BASICO",
@@ -314,12 +326,11 @@ def convert_csv_to_sql_insert_values(config):
                 except:
                     continue
 
-            csv_row = filter_csv_row(csv_row, csv_columns_indexes)
-
-            if not allow_null_columns and '' in csv_row:
-                continue
-
-            insert_values.append(build_insert_value(csv_row, row_formatters, insert_value_format))
+            if csv_row != []:
+                csv_row = filter_csv_row(csv_row, csv_columns_indexes)
+                if not allow_null_columns and '' in csv_row:
+                    continue
+                insert_values.append(build_insert_value(csv_row, row_formatters, insert_value_format))
 
         i += 1
 
@@ -347,13 +358,13 @@ if __name__ == '__main__':
     db_cursor = db.cursor()
 
     process(db_cursor, SENADORES_CONFIG)
-    process(db_cursor, DEPUTADOS_CONFIG)
-    process(db_cursor, ORGAO_SUP_CONFIG)
+    #process(db_cursor, DEPUTADOS_CONFIG)
+    #process(db_cursor, ORGAO_SUP_CONFIG)
     process(db_cursor, ORGAO_CONFIG)
     process(db_cursor, MUNICIPIO_CONFIG)
     process(db_cursor, PROPONENTE_CONFIG)
     process(db_cursor, PROPOSTA_CONFIG)
-    process(db_cursor, CONVENIO_CONFIG)
+    '''process(db_cursor, CONVENIO_CONFIG)
     process(db_cursor, DESEMBOLSO_CONFIG)
     process(db_cursor, META_CONFIG)
     process(db_cursor, TERMO_ADITIVO_CONFIG)
@@ -361,6 +372,6 @@ if __name__ == '__main__':
     process(db_cursor, EMENDA_CONFIG)
     process(db_cursor, FORNECEDOR_CONFIG)
     process(db_cursor, PAGAMENTO_CONFIG)
-    process(db_cursor, OBTV_CONVENENTE_CONFIG)
+    process(db_cursor, OBTV_CONVENENTE_CONFIG)'''
     # Opcional (demora!)
     #process(db_cursor, HISTORICO_SITUACAO_CONFIG)
