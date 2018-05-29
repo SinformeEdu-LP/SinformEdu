@@ -73,12 +73,12 @@ ORGAO_CONFIG = {
 MUNICIPIO_CONFIG = {
     'csv_file_name': 'siconv_proposta',
     'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
-    'csv_columns_indexes': [2, 3],
+    'csv_columns_indexes': [2, 3, 1],
     'csv_preprocess_row': preprocess_proposta_csv_row,
     'table_name': 'municipio',
-    'columns_to_insert': ["MUNIC_PROPONENTE", "COD_MUNIC_IBGE"],
-    'insert_value_format': "('{}', {})",
-    'row_formatters': [FORMAT_ESCAPE_SINGLE_QUOTE, FORMAT_NUMBER],
+    'columns_to_insert': ["MUNIC_PROPONENTE", "COD_MUNIC_IBGE", "UF_PROPONENTE"],
+    'insert_value_format': "('{}', {}, '{}')",
+    'row_formatters': [FORMAT_ESCAPE_SINGLE_QUOTE, FORMAT_NUMBER, FORMAT_ESCAPE_SINGLE_QUOTE],
     'insert_command': "INSERT IGNORE"  # Ignore porque tem algumas propostas sem COD_MUNIC_IBGE
 }
 
@@ -450,7 +450,7 @@ if __name__ == '__main__':
     db_cursor = db.cursor()
 
     process(db_cursor, SENADORES_CONFIG)
-    # process(db_cursor, DEPUTADOS_CONFIG)
+    process(db_cursor, DEPUTADOS_CONFIG)
     # process(db_cursor, ORGAO_SUP_CONFIG)
     process(db_cursor, ORGAO_CONFIG)
     process(db_cursor, MUNICIPIO_CONFIG)
