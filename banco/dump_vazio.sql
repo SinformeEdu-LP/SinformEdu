@@ -223,6 +223,7 @@ DROP TABLE IF EXISTS `municipio`;
 CREATE TABLE `municipio` (
   `COD_MUNIC_IBGE` bigint(20) NOT NULL,
   `MUNIC_PROPONENTE` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `UF_PROPONENTE` varchar(2) COLLATE utf8_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`COD_MUNIC_IBGE`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
