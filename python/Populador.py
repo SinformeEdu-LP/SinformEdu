@@ -47,17 +47,6 @@ def preprocess_proposta_csv_row(csv_rows):
 
     return csv_rows
 
-'''ORGAO_SUP_CONFIG = {
-    'csv_file_name': 'siconv_proposta',
-    'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
-    'csv_columns_indexes': [4, 5],
-    'table_name': 'orgao',
-    'columns_to_insert': ["COD_ORGAO", "DESC_ORGAO"],
-    'insert_value_format': "({}, '{}')",
-    'row_formatters': [FORMAT_NUMBER, FORMAT_IDENTITY],
-    'insert_command': "REPLACE"
-}'''
-
 ORGAO_CONFIG = {
     'csv_file_name': 'siconv_proposta',
     'csv_expected_header': 'ID_PROPOSTA;UF_PROPONENTE;MUNIC_PROPONENTE;COD_MUNIC_IBGE;COD_ORGAO_SUP;DESC_ORGAO_SUP;NATUREZA_JURIDICA;NR_PROPOSTA;DIA_PROP;MES_PROP;ANO_PROP;DIA_PROPOSTA;COD_ORGAO;DESC_ORGAO;MODALIDADE;IDENTIF_PROPONENTE;NM_PROPONENTE;CEP_PROPONENTE;ENDERECO_PROPONENTE;BAIRRO_PROPONENTE;NM_BANCO;SITUACAO_CONTA;SITUACAO_PROJETO_BASICO;SIT_PROPOSTA;DIA_INIC_VIGENCIA_PROPOSTA;DIA_FIM_VIGENCIA_PROPOSTA;OBJETO_PROPOSTA;VL_GLOBAL_PROP;VL_REPASSE_PROP;VL_CONTRAPARTIDA_PROP',
@@ -356,24 +345,43 @@ def format_csv_column(row, row_formatter):
     else:
         return row_formatter(row)
 
-
 def build_insert_value(csv_row, row_formatters, insert_value_format):
-    j = 0
-    while j < len(csv_row):
-        csv_row[j] = format_csv_column(csv_row[j], row_formatters[j])
-        j += 1
-
+    csv_row = list(map(lambda x,y: format_csv_column(x,y), csv_row, row_formatters))
+    
     return insert_value_format.format(*csv_row).replace("'NULL'", 'NULL')
-
 
 # Remove colunas que nao serao utilizadas
 def filter_csv_row(csv_row, csv_columns_indexes):
-    filtered_csv_row = list()
-    for x in csv_columns_indexes:
-        filtered_csv_row.append(csv_row[x])
-
+    filtered_csv_row = list(map(lambda x: csv_row[x], csv_columns_indexes))
+ 
     return filtered_csv_row
 
+def mapInserirValoresBD(row_formatters, insert_value_format, csv_columns_indexes, allow_null_columns, csv_require_not_null_indexes, csv_preprocess_row, insert_values, reader):
+    list(map(lambda z: inserirValoresBD(row_formatters, insert_value_format, csv_columns_indexes, allow_null_columns, csv_require_not_null_indexes, csv_preprocess_row, insert_values,z), reader))
+
+def inserirValoresBD(row_formatters, insert_value_format, csv_columns_indexes, allow_null_columns, csv_require_not_null_indexes, csv_preprocess_row, insert_values, csv_row):
+    if csv_preprocess_row != None:
+        try:
+            csv_row = csv_preprocess_row(csv_row)
+
+        except ValueError as error:
+            print(str(error))
+    if csv_require_not_null_indexes != None:
+        try:
+            for index in csv_require_not_null_indexes:
+                if csv_row[index] == '':
+                    raise (Exception('Erro - condicao csv_require_not_null_indexes nao satisfeita'))     
+        except:
+            print("erro")
+    if csv_row != []:
+        csv_row = filter_csv_row(csv_row, csv_columns_indexes)
+        if not allow_null_columns and '' in csv_row:
+            print("erro")
+        #if allow_null_columns or '' not in csv_row:
+        else:
+            insert_values.append(build_insert_value(csv_row, row_formatters, insert_value_format))
+            
+    return insert_values
 
 # converte csv para strings contendo um VALUE do sql
 def convert_csv_to_sql_insert_values(config):
@@ -389,38 +397,17 @@ def convert_csv_to_sql_insert_values(config):
     reader = csv.reader(ifile, delimiter=';')
 
     insert_values = list()
-    i = 0
-    for csv_row in reader:
-        # Coleta e valida o header
-        if i == 0:
-            header = ';'.join(csv_row)
-            header = header.replace(u'\ufeff', '')
-            if (header != config['csv_expected_header']):
-                raise (Exception('Erro - ' + 'O header do csv ' + config[
-                    'csv_file_name'] + ' está diferente do esperado: ' + header + ' x ' + config[
-                                     'csv_expected_header'] + ' (esperado)'))
-        else:
-            if csv_preprocess_row != None:
-                try:
-                    csv_row = csv_preprocess_row(csv_row)
-                except ValueError as error:
-                    print(str(error))
-                    continue
-            if csv_require_not_null_indexes != None:
-                try:
-                    for index in csv_require_not_null_indexes:
-                        if csv_row[index] == '':
-                            raise (Exception('Erro - condicao csv_require_not_null_indexes nao satisfeita'))
-                except:
-                    continue
+    
+    reader = list(reader)
 
-            if csv_row != []:
-                csv_row = filter_csv_row(csv_row, csv_columns_indexes)
-                if not allow_null_columns and '' in csv_row:
-                    continue
-                insert_values.append(build_insert_value(csv_row, row_formatters, insert_value_format))
-
-        i += 1
+    header = ';'.join(reader[0])
+    header = header.replace(u'\ufeff', '')
+    if (header != config['csv_expected_header']):
+        raise(Exception('Erro - ' + 'O header do csv ' + config['csv_file_name'] + ' está diferente do esperado: ' + header + ' x ' + config['csv_expected_header'] + ' (esperado)'))    
+    
+    reader = reader[1:]
+    
+    mapInserirValoresBD(row_formatters, insert_value_format, csv_columns_indexes, allow_null_columns, csv_require_not_null_indexes, csv_preprocess_row, insert_values, reader)
 
     return insert_values
 
