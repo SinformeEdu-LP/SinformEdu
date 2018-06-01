@@ -445,7 +445,9 @@ if __name__ == '__main__':
         charset="utf8"
     )
     db_cursor = db.cursor()
-
+    
+    startTotal = timeit.default_timer()
+    
     process(db_cursor, SENADORES_CONFIG)
     process(db_cursor, DEPUTADOS_CONFIG)
     # process(db_cursor, ORGAO_SUP_CONFIG)
@@ -464,3 +466,9 @@ if __name__ == '__main__':
     process(db_cursor, OBTV_CONVENENTE_CONFIG)'''
     # Opcional (demora!)
     # process(db_cursor, HISTORICO_SITUACAO_CONFIG)
+    
+    stopTotal = timeit.default_timer()
+    timeSpentTotal = stopTotal - startTotal
+    minutesTotal = int(timeSpentTotal // 60) # Parte inteira
+    secondsTotal = int( (timeSpentTotal/60 - minutesTotal) * 60 )
+    print('Tempo total do processo: ' + str(minutesTotal) + ' min : ' + str(secondsTotal) + ' s')
