@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as pd 
 datasetEscola2010 = pd.read_csv('~/Documentos/Pandas Testes/escolas2010.csv', sep='|')
 print("datasetEscola2010 - Colunas: ")
 print(datasetEscola2010.columns)
