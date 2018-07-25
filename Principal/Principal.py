@@ -1,5 +1,3 @@
-from Arquivos.Pontuacao_Escolas_Por_Municipio import gerarTabelaPontuacao, ESCOLAS_2013
+from Arquivos.Pontuacao_Escolas_Por_Municipio import gerarTabelaPontuacaoEscolas
 
-print(gerarTabelaPontuacao(ESCOLAS_2013,'PE'))
-
-                       
+potuacaoEscolas2013 = gerarTabelaPontuacaoEscolas('PE','2013')
