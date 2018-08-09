@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import geopandas as gpd
 
-df = pd.read_csv('arquivos/propostaXescolas2013.csv',low_memory=False, sep=';')
+df = pd.read_csv('~/Documentos/Pandas Testes/concat4_out.csv',low_memory=False, sep=';')
 df.rename(columns={'COD_MUNIC_IBGE':'CD_GEOCODM'}, inplace=True)
 df['CD_GEOCODM'] = df['CD_GEOCODM'].apply(int).apply(str)
 df['PONTUACAO_ESCOLAS_POR_CIDADE'] = df['PONTUACAO_ESCOLAS_POR_CIDADE'].apply(int)
@@ -24,8 +24,9 @@ df = df.fillna(0) #Converte NaN para 0
 
 def valorRepasse(valor):
     if valor == 0:
-        result = 0
+        result = ''
     else:
+        #result = int(valor/10000) #mediana
         result = int(valor/1000000)+6
         #result = int(valor/100000)+6 # Sem Recife
     return result
