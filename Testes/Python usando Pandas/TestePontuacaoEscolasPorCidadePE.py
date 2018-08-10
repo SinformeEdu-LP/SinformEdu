@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import geopandas as gpd
 
-df = pd.read_csv('~/Documentos/Pandas Testes/concat4_out.csv',low_memory=False, sep=';')
+df = pd.read_csv('mediaPontuacaoEscolasPorMunicipio2013_PE_out.csv',low_memory=False, sep=';')
 df.rename(columns={'COD_MUNIC_IBGE':'CD_GEOCODM'}, inplace=True)
 df['CD_GEOCODM'] = df['CD_GEOCODM'].apply(int).apply(str)
 df['PONTUACAO_ESCOLAS_POR_CIDADE'] = df['PONTUACAO_ESCOLAS_POR_CIDADE'].apply(int)
@@ -58,7 +58,6 @@ gjson = mapadigital.to_crs(epsg='4326').to_json()
 print(mapadigital)
 
 mapadigital = pd.merge(mapadigitalGeo, df, how='inner', on='CD_GEOCODM')
-
 
 mapFolium.choropleth(geo_data=gjson, data=mapadigital,
         columns=['CD_GEOCODM', 'PONTUACAO_ESCOLAS_POR_CIDADE','SOMA_VALOR_REPASSE_POR_CIDADE', 'NM_MUN_2017'],

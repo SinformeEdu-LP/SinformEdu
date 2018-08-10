@@ -20,7 +20,7 @@ def colorGraf(valor):
 
 def plotCirculo(i):
     folium.CircleMarker([mapadigitalGeo.centroid.iloc[i].coords[0][1], mapadigitalGeo.centroid.iloc[i].coords[0][0] ],
-                  radius=int( mapadigital.iloc[i]['ID']*10/184 + (3-4020/184) ),
+                  radius=3,
                   popup=str(mapadigital.iloc[i]['ID']),
                   color=colorGraf(mapadigital.iloc[i]['ID']),
                   fill=True,
