@@ -13,7 +13,9 @@ plt.style.use('ggplot')
 import geopandas as gpd
 
 def colorGraf(valor, multiplicador):
-    referenciaMinimaValor = 500000 # Abaixo desse valor foi convencionado ser o mínimo
+    referenciaMinimaValor = 500000 # Abaixo desse valor (500 mil) foi convencionado ser o mínimo
+    #Para a referencia máxima o valor foi ajustado de acordo com alguns resultados,
+    #onde para os graficos de mapa de cada estado o multiplicador é 1, e para o Brasil é 10.
     referenciaMaximaValor = 1000000 * multiplicador
     if valor == 0:
         colorCirc = ''
@@ -27,13 +29,13 @@ def colorGraf(valor, multiplicador):
 
 def valorTotal(valor, multiplicador):
     if valor != 0:
-        referenciaMaximaValor = 10000000 * multiplicador
+        referenciaMaximaValor = 50000000 * multiplicador
         referenciaMinimaCirculo = 2
-        referenciaMaximaCirculo = 30
+        referenciaMaximaCirculo = 20
         #O valor que no caso passa de 100 milhoes no mapa BR foi escalonado para a faixa de 2 a 30 para ser plotado em bolhas
         result = referenciaMinimaCirculo+(referenciaMaximaCirculo-referenciaMinimaCirculo)*(valor)/(referenciaMaximaValor)
     else:
-        result = '' #dessa forma a bolha não aparece no mapa
+        result = '' #com valor nulo a bolha não aparece no mapa
     return result
 
 
@@ -47,12 +49,12 @@ def plotCirculo(i, mapadigitalGeo, mapadigital, mapFolium, multiplicador):
                   fill_opacity=0.4
                  ).add_to(mapFolium)
                  
-def dadosEstados(local):
+def dadosLocal(local):
     if local == 'BR':
-        latBrasil = -9.588903 #latitude central aproximada do Brasil
-        longBrasil = -51.619789 #latitude central aproximada do Brasil
+        latBrasil = -14.235004 #latitude central aproximada do Brasil
+        longBrasil = -51.92528 #latitude central aproximada do Brasil
         coords = [latBrasil, longBrasil]
-        zoomInicialMapa = 4
+        zoomInicialMapa = 5
         RESULT = {
             'arquivoShape': './Dados/Shapefiles/'+local+'-UF/BRUFE250GC_SIR.shp',
             'localMap': coords, # [Latitude, Longitude]
@@ -76,22 +78,22 @@ def dadosEstados(local):
         }
     return RESULT
 
-def ajustarDataframe(df, chaveMap):
+def converterTipoColunas(df, chaveMap):
     df[chaveMap] = df[chaveMap].apply(int).apply(str)
     df['TOTAL_VL_GLOBAL_PROP'] = df['TOTAL_VL_GLOBAL_PROP'].apply(int)
     df['MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE'] = df['MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE'].apply(int)
     df = df.fillna(0) #Converte NaN para 0
     return df
 
-def plotMapCircleMarkers(dataframe, local, ano):   
-    RESULT = dadosEstados(local)
-    df = ajustarDataframe(dataframe, RESULT['chaveMap'])
+def plotMapCircleMarkers(local, dataframe, ano):   
+    RESULT = dadosLocal(local)
+    dataframeTratado = converterTipoColunas(dataframe, RESULT['chaveMap'])
     
     mapadigital = gpd.read_file(RESULT['arquivoShape'])
     mapadigitalGeo = gpd.GeoDataFrame(mapadigital)
     gjson = mapadigital.to_crs(epsg='4326').to_json()
     
-    mapadigital = pd.merge(mapadigitalGeo, df, how='left', on=RESULT['chaveMap']) # GEOCODM
+    mapadigital = pd.merge(mapadigitalGeo, dataframeTratado, how='left', on=RESULT['chaveMap']) # GEOCODM
     mapadigital = mapadigital.fillna(0) #Converte NaN para 0
     
     mapFolium = folium.Map(location=RESULT['localMap'], zoom_start=RESULT['zoomMap'])
@@ -107,7 +109,12 @@ def plotMapCircleMarkers(dataframe, local, ano):
     list(map(lambda x: plotCirculo(x, mapadigitalGeo, mapadigital, mapFolium, RESULT['multiplicador']), sequencia)) # Add ao mapa, os marcadores circulares
                      
     mapFolium.save(outfile = './Resultados/Graficos/MapaInfraestrutura_X_BolhaConvenios'+ano+'_'+local+'.html')
-    print('Gráfico salvo na pasta Principal/Graficos!')
+    print('Gráfico_'+ano+' salvo na pasta Principal/Resultados/Graficos!')
+    
+def plotarGraficosEscolasConvenios(local, listaTabelaEscolas, listaAnos):
+    listaEscolasConvenios = list(map(lambda x,y: plotMapCircleMarkers(local, x, y), listaTabelaEscolas, listaAnos))
+    print('Todos os gráficos salvos!!')
+    return listaEscolasConvenios
 
 
 

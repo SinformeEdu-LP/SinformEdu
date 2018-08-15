@@ -51,11 +51,24 @@ def inserirNomeMunicipio(tabela):
     mergeTabelas = pd.merge(tabela, municipios, how='inner', on='COD_MUNIC_IBGE')
     return mergeTabelas
 
-def inserirSigla(tabela):
+def inserirSiglaEstado(tabela):
     codEstado = pd.read_csv('./Dados/cod_estados.csv',low_memory=False, encoding='ISO-8859-1', sep=';')
     codEstado = codEstado[['SIGLA','COD']]
     mergeTabelas = pd.merge(tabela, codEstado, how='inner', on='COD')
     return mergeTabelas
+
+def inserirCodEstado(local, tabela):
+    dfEstado = pd.read_csv('./Dados/cod_estados.csv',low_memory=False, encoding='ISO-8859-1', sep=';')
+    dfEstado = dfEstado[['SIGLA','COD']]
+    mergeTabelas = pd.merge(tabela, dfEstado, how='inner', on='SIGLA')
+    return mergeTabelas
+
+def inserirCodEstadoPE(local, tabela):
+    dfEstado = pd.read_csv('./Dados/cod_estados.csv',low_memory=False, encoding='ISO-8859-1', sep=';')
+    dfEstado = dfEstado.loc[(dfEstado['SIGLA'] == local)]
+    #codEstado = int(dfEstado['COD'])
+    tabela["COD"] = int(dfEstado['COD'])
+    return tabela
 
 def gerarTabelaPontuacaoEscolas(local, ano):
     headInfra, itensInfra, pesos, sequencia, headInfraPadrao, itensInfraPadrao = tabelasEscolasAno(ano)
@@ -65,14 +78,16 @@ def gerarTabelaPontuacaoEscolas(local, ano):
     df_escola = df_escola.fillna(0) #Converte NaN para 0
 
     if ano == '2013':
+        df_escola = inserirCodEstado(local, df_escola)
         if local != 'BR':
             df_escola = df_escola.loc[(df_escola['SIGLA'] == local)]
+            
     elif ano == '2015' or ano == '2017':
         df_escola.columns = headInfraPadrao
         headInfra = headInfraPadrao
         itensInfra = itensInfraPadrao
-        df_escola.rename(columns={'SIGLA':'COD'}, inplace=True)
-        df_escola = inserirSigla(df_escola)
+        df_escola.rename(columns={'SIGLA':'COD'}, inplace=True) #Nas escolas a partir de 2015 não vem a SIGLA vem o código do Estado
+        df_escola = inserirSiglaEstado(df_escola)
         if local != 'BR':
             df_escola = df_escola.loc[(df_escola['SIGLA'] == local)]
         
@@ -88,15 +103,15 @@ def gerarTabelaPontuacaoEscolas(local, ano):
         df_escolaAgrupada = df_escola.groupby('SIGLA')
     df_escolaPontuacao = df_escolaAgrupada.apply(agrupamento)
     df_escolaPontuacao.rename(columns={'size':'QTD_ESCOLAS'}, inplace=True)
-    
     df_escolaPontuacao.rename(columns={'SIGLA':'UF_PROPONENTE'}, inplace=True)
-    print(df_escolaPontuacao)
-    #df_escolaPontuacao = inserirNomeMunicipio(df_escolaPontuacao)
     df_escolaPontuacao.to_csv('./Resultados/Tabelas/mediaPontuacaoEscolasPorMunicipio'+ano+'_'+local+'_out.csv',';')
+    print('Tabela MediaPontuacaoEscolasPorMunicipios_'+ano+' gerada!')
     return df_escolaPontuacao
 
 def gerarListaTabelasPontuacaoEscolas(estado, listaAnos):
     listaTabelasPontuacaoPorMunicipio = list(map(lambda x: gerarTabelaPontuacaoEscolas(estado, x), listaAnos))
+    print('Todas as tabelas MediaPontuacaoEscolasPorMunicipios geradas!')
+    print()
     return listaTabelasPontuacaoPorMunicipio
     
     

@@ -20,7 +20,7 @@ def convenioPropostaPorLocal(local, ano):
     
     return df_result
 
-def mergeEscolasConvenios(local, ano, tabelaEscolas):
+def mergeEscolasConvenios(local, tabelaEscolas, ano):
     if local != 'BR':
         valor = 'COD_MUNIC_IBGE'
     else:
@@ -28,10 +28,13 @@ def mergeEscolasConvenios(local, ano, tabelaEscolas):
     convProposta = convenioPropostaPorLocal(local, ano)
     escolasConvenios = pd.merge(tabelaEscolas, convProposta, how='left', on=valor)
     escolasConvenios = escolasConvenios.fillna(0) #Converte NaN para 0
+    print('Tabela EscolasConvenios_'+ano+' gerada!')
     return escolasConvenios
 
-def gerarListaEscolasConvenios(local, listaTabelaEscolas, ano):
-    listaEscolasConvenios = list(map(lambda x: mergeEscolasConvenios(local, ano, x), listaTabelaEscolas))
+def gerarListaEscolasConvenios(local, listaTabelaEscolas, listaAnos):
+    listaEscolasConvenios = list(map(lambda x,y: mergeEscolasConvenios(local, x, y), listaTabelaEscolas, listaAnos))
+    print('Todos as tabelas EscolasConvenios geradas!')
+    print()
     return listaEscolasConvenios
     
     
