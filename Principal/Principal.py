@@ -2,8 +2,8 @@ from Arquivos.Pontuacao_Escolas_Por_Municipio import gerarListaTabelasPontuacaoE
 from Arquivos.ValorInvestidoPorLocal import gerarListaEscolasConvenios
 from Arquivos.PlotMapsCircleMarkers import plotMapCircleMarkers
 
-listaAnos = ['2013']
-local = 'PE' # Sigla do Estado para mostrar suas cidades ou BR_UF para mostrar os estados
+listaAnos = ['2015']
+local = 'BR' # Sigla do Estado para mostrar suas cidades ou BR para mostrar os estados
 
 def gerarGraficoMapa(local, listaAnos):
     listaPontuacaoEscolas = gerarListaTabelasPontuacaoEscolas(local, listaAnos)

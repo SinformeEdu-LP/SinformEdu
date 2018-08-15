@@ -1,7 +1,8 @@
 import folium
 import pandas as pd
 
-pd.set_option("display.max_columns",166)
+maximoColunasMostradas = 170 
+pd.set_option("display.max_columns",maximoColunasMostradas)
 from IPython import get_ipython
 ipy = get_ipython()
 if ipy is not None:
@@ -11,40 +12,36 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import geopandas as gpd
 
-def colorGraf(valor):
+def colorGraf(valor, multiplicador):
+    referenciaMinimaValor = 500000 # Abaixo desse valor foi convencionado ser o mínimo
+    referenciaMaximaValor = 1000000 * multiplicador
     if valor == 0:
         colorCirc = ''
-    elif valor >= 500000:
-        colorCirc = "#13FF00" #Verde "#2917FF" #Azul
-    elif valor < 150000:
+    elif valor >= referenciaMaximaValor :
+        colorCirc = "#13FF00" #Verde
+    elif valor < referenciaMinimaValor:
         colorCirc = "#FF503B" #Vermelho
     else:
         colorCirc = "#E8D319" #Amarelo 
     return colorCirc
 
-def valorTotal(valor):
-    if valor == 0:
-        result = ''
-    elif valor >= 100000000:
-        result = 2*valor/10000000
-    elif valor >= 10000000:
-        result = valor/1000000
-    elif valor >= 1000000:
-        result = valor/200000
-    elif valor >= 100000:
-        result = valor/40000
-    elif valor >= 10000:
-        result = valor/5000
+def valorTotal(valor, multiplicador):
+    if valor != 0:
+        referenciaMaximaValor = 10000000 * multiplicador
+        referenciaMinimaCirculo = 2
+        referenciaMaximaCirculo = 30
+        #O valor que no caso passa de 100 milhoes no mapa BR foi escalonado para a faixa de 2 a 30 para ser plotado em bolhas
+        result = referenciaMinimaCirculo+(referenciaMaximaCirculo-referenciaMinimaCirculo)*(valor)/(referenciaMaximaValor)
     else:
-        result = 1 
+        result = '' #dessa forma a bolha não aparece no mapa
     return result
 
 
-def plotCirculo(i, mapadigitalGeo, mapadigital, mapFolium):
+def plotCirculo(i, mapadigitalGeo, mapadigital, mapFolium, multiplicador):
     folium.CircleMarker([mapadigitalGeo.centroid.iloc[i].coords[0][1], mapadigitalGeo.centroid.iloc[i].coords[0][0] ],
-                  radius= valorTotal( mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP'] ),#mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP']/10000,
+                  radius= valorTotal( mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP'], multiplicador ),#mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP']/10000,
                   popup=str(mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP']),
-                  color=colorGraf(mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP']),
+                  color=colorGraf(mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP'], multiplicador),
                   fill=True,
                   line_opacity=0.1,
                   fill_opacity=0.4
@@ -52,11 +49,16 @@ def plotCirculo(i, mapadigitalGeo, mapadigital, mapFolium):
                  
 def dadosEstados(local):
     if local == 'BR':
-        coords = [-9.588903,-51.619789]
+        latBrasil = -9.588903 #latitude central aproximada do Brasil
+        longBrasil = -51.619789 #latitude central aproximada do Brasil
+        coords = [latBrasil, longBrasil]
+        zoomInicialMapa = 4
         RESULT = {
-            'nome_arquivo_shp': './Dados/Shapefiles/'+local+'-UF/BRUFE250GC_SIR.shp',
-            'location': coords, # [Latitude, Longitude]
-            'zoom': 5
+            'arquivoShape': './Dados/Shapefiles/'+local+'-UF/BRUFE250GC_SIR.shp',
+            'localMap': coords, # [Latitude, Longitude]
+            'zoomMap': zoomInicialMapa,
+            'chaveMap': 'CD_GEOCUF',
+            'multiplicador': 10
         }
     else:
         codEstados = pd.read_csv('./Dados/cod_estados.csv',low_memory=False, sep=';')
@@ -64,54 +66,47 @@ def dadosEstados(local):
         latEstado = codEstados.loc[codEstados['SIGLA'] == local, 'LAT'].values[0]
         longEstado = codEstados.loc[codEstados['SIGLA'] == local, 'LONG'].values[0]
         coords = [latEstado,longEstado]
+        zoomInicialMapa = 7
         RESULT = {
-            'nome_arquivo_shp': './Dados/Shapefiles/'+local+'-MUN/'+str(codValor)+'MUE250GC_SIR.shp',
-            'location': coords, # [Latitude, Longitude]
-            'zoom': 8
+            'arquivoShape': './Dados/Shapefiles/'+local+'-MUN/'+str(codValor)+'MUE250GC_SIR.shp',
+            'localMap': coords, # [Latitude, Longitude]
+            'zoomMap': zoomInicialMapa,
+            'chaveMap': 'CD_GEOCODM',
+            'multiplicador': 1
         }
     return RESULT
 
-def ajustarDataframe(df):
-    df.rename(columns={'COD_MUNIC_IBGE':'CD_GEOCODM'}, inplace=True)
-    df['CD_GEOCODM'] = df['CD_GEOCODM'].apply(int).apply(str)
+def ajustarDataframe(df, chaveMap):
+    df[chaveMap] = df[chaveMap].apply(int).apply(str)
     df['TOTAL_VL_GLOBAL_PROP'] = df['TOTAL_VL_GLOBAL_PROP'].apply(int)
     df['MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE'] = df['MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE'].apply(int)
-    df.to_csv('~/Documentos/Pandas Testes/dfffrrrrrrr_out.csv',';')
     df = df.fillna(0) #Converte NaN para 0
     return df
 
-def plotMapCircleMarkers(dataframe, local, ano):
-    df = ajustarDataframe(dataframe)
-    
+def plotMapCircleMarkers(dataframe, local, ano):   
     RESULT = dadosEstados(local)
+    df = ajustarDataframe(dataframe, RESULT['chaveMap'])
     
-    mapadigital = gpd.read_file(RESULT['nome_arquivo_shp'])
+    mapadigital = gpd.read_file(RESULT['arquivoShape'])
     mapadigitalGeo = gpd.GeoDataFrame(mapadigital)
     gjson = mapadigital.to_crs(epsg='4326').to_json()
     
-    mapadigital = pd.merge(mapadigitalGeo, df, how='left', on='CD_GEOCODM')
+    mapadigital = pd.merge(mapadigitalGeo, df, how='left', on=RESULT['chaveMap']) # GEOCODM
     mapadigital = mapadigital.fillna(0) #Converte NaN para 0
     
-    mapFolium = folium.Map(location=RESULT['location'], zoom_start=RESULT['zoom'])
+    mapFolium = folium.Map(location=RESULT['localMap'], zoom_start=RESULT['zoomMap'])
     mapFolium.choropleth(geo_data=gjson, data=mapadigital,
-            columns=['CD_GEOCODM', 'MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE','TOTAL_VL_GLOBAL_PROP','NM_MUN_2017'],
-            key_on='feature.properties.CD_GEOCODM',
+            columns=[RESULT['chaveMap'], 'MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE','TOTAL_VL_GLOBAL_PROP'],
+            key_on='feature.properties.'+RESULT['chaveMap'],
             fill_color='YlGn',
             fill_opacity=0.7,
             line_opacity=0.2,
             legend_name='INFRAESTRUTURA DAS ESCOLAS (PONTOS)')
-    '''mapFolium.choropleth(geo_data=gjson, data=mapadigital,
-            columns=['CD_GEOCUF', 'Score'],
-            key_on='feature.properties.CD_GEOCUF',
-            fill_color='YlGn',
-            fill_opacity=0.7,
-            line_opacity=0.2,
-            legend_name='Taxa de ID (%)')'''
     
     sequencia = list(range(len(mapadigital)-1))
-    list(map(lambda x: plotCirculo(x, mapadigitalGeo, mapadigital, mapFolium), sequencia)) # Add ao mapa, os marcadores circulares
+    list(map(lambda x: plotCirculo(x, mapadigitalGeo, mapadigital, mapFolium, RESULT['multiplicador']), sequencia)) # Add ao mapa, os marcadores circulares
                      
-    mapFolium.save(outfile = './Resultados/Graficos/mapEstado'+ano+'_'+local+'.html')
+    mapFolium.save(outfile = './Resultados/Graficos/MapaInfraestrutura_X_BolhaConvenios'+ano+'_'+local+'.html')
     print('Gráfico salvo na pasta Principal/Graficos!')
 
 
