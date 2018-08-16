@@ -11,6 +11,8 @@ if ipy is not None:
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 import geopandas as gpd
+import locale
+locale.setlocale(locale.LC_ALL, '') 
 
 def colorGraf(valor, multiplicador):
     referenciaMinimaValor = 500000 # Abaixo desse valor (500 mil) foi convencionado ser o mínimo
@@ -29,7 +31,7 @@ def colorGraf(valor, multiplicador):
 
 def valorTotal(valor, multiplicador):
     if valor != 0:
-        referenciaMaximaValor = 50000000 * multiplicador
+        referenciaMaximaValor = 10000000 * multiplicador
         referenciaMinimaCirculo = 2
         referenciaMaximaCirculo = 20
         #O valor que no caso passa de 100 milhoes no mapa BR foi escalonado para a faixa de 2 a 30 para ser plotado em bolhas
@@ -38,11 +40,16 @@ def valorTotal(valor, multiplicador):
         result = '' #com valor nulo a bolha não aparece no mapa
     return result
 
+def formatarPopup(valor):
+    formatValor = 'R$ '+locale.format('%.2f', (valor), True)
+    result = "<b> Valor Global: </b><br/>" +  str(formatValor)
+    return result
+
 
 def plotCirculo(i, mapadigitalGeo, mapadigital, mapFolium, multiplicador):
     folium.CircleMarker([mapadigitalGeo.centroid.iloc[i].coords[0][1], mapadigitalGeo.centroid.iloc[i].coords[0][0] ],
                   radius= valorTotal( mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP'], multiplicador ),#mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP']/10000,
-                  popup=str(mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP']),
+                  popup=formatarPopup( mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP'] ), #"<b>" + parada + "</b><br/>" + "media: " + str(dado)
                   color=colorGraf(mapadigital.iloc[i]['TOTAL_VL_GLOBAL_PROP'], multiplicador),
                   fill=True,
                   line_opacity=0.1,
@@ -60,7 +67,7 @@ def dadosLocal(local):
             'localMap': coords, # [Latitude, Longitude]
             'zoomMap': zoomInicialMapa,
             'chaveMap': 'CD_GEOCUF',
-            'multiplicador': 10
+            'multiplicador': 50
         }
     else:
         codEstados = pd.read_csv('./Dados/cod_estados.csv',low_memory=False, sep=';')
@@ -80,10 +87,14 @@ def dadosLocal(local):
 
 def converterTipoColunas(df, chaveMap):
     df[chaveMap] = df[chaveMap].apply(int).apply(str)
-    df['TOTAL_VL_GLOBAL_PROP'] = df['TOTAL_VL_GLOBAL_PROP'].apply(int)
+    df['TOTAL_VL_GLOBAL_PROP'] = df['TOTAL_VL_GLOBAL_PROP'].astype(float)#apply(float)
     df['MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE'] = df['MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE'].apply(int)
     df = df.fillna(0) #Converte NaN para 0
     return df
+
+def formatarPopupMapa(tipoLocal):
+    result = "MEDIA PONTUACAO ESCOLAS POR" + tipoLocal+"- Valor Total dos Convênios (Bolhas)"
+    return result
 
 def plotMapCircleMarkers(local, dataframe, ano):   
     RESULT = dadosLocal(local)
@@ -101,19 +112,23 @@ def plotMapCircleMarkers(local, dataframe, ano):
             columns=[RESULT['chaveMap'], 'MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE','TOTAL_VL_GLOBAL_PROP'],
             key_on='feature.properties.'+RESULT['chaveMap'],
             fill_color='YlGn',
-            fill_opacity=0.7,
-            line_opacity=0.2,
-            legend_name='INFRAESTRUTURA DAS ESCOLAS (PONTOS)')
+            fill_opacity = 0.7,
+            line_opacity = 0.2,
+            popup = 'Teste1',
+            legend_name = formatarPopupMapa('ESTADO')
+            )
     
     sequencia = list(range(len(mapadigital)-1))
     list(map(lambda x: plotCirculo(x, mapadigitalGeo, mapadigital, mapFolium, RESULT['multiplicador']), sequencia)) # Add ao mapa, os marcadores circulares
                      
     mapFolium.save(outfile = './Resultados/Graficos/MapaInfraestrutura_X_BolhaConvenios'+ano+'_'+local+'.html')
-    print('Gráfico_'+ano+' salvo na pasta Principal/Resultados/Graficos!')
+    print('Gráfico_'+ano+'_'+local+' salvo na pasta Principal/Resultados/Graficos!')
     
 def plotarGraficosEscolasConvenios(local, listaTabelaEscolas, listaAnos):
     listaEscolasConvenios = list(map(lambda x,y: plotMapCircleMarkers(local, x, y), listaTabelaEscolas, listaAnos))
     print('Todos os gráficos salvos!!')
+    print('Etapa finalizada!')
+    print()
     return listaEscolasConvenios
 
 

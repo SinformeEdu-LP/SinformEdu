@@ -28,7 +28,7 @@ def mergeEscolasConvenios(local, tabelaEscolas, ano):
     convProposta = convenioPropostaPorLocal(local, ano)
     escolasConvenios = pd.merge(tabelaEscolas, convProposta, how='left', on=valor)
     escolasConvenios = escolasConvenios.fillna(0) #Converte NaN para 0
-    print('Tabela EscolasConvenios_'+ano+' gerada!')
+    print('Tabela EscolasConvenios_'+ano+'_'+local+' gerada!')
     return escolasConvenios
 
 def gerarListaEscolasConvenios(local, listaTabelaEscolas, listaAnos):
