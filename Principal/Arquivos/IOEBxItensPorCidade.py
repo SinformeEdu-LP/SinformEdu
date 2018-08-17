@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 maximoColunasMostradas = 170
 pd.set_option("display.max_columns",maximoColunasMostradas)
@@ -11,7 +12,7 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
 import plotly
-plotly.tools.set_credentials_file(username='user', api_key='code')
+plotly.tools.set_credentials_file(username='user', api_key='code') # Usuario e senha retirados
 import plotly.plotly as py
 import plotly.graph_objs as go
 
@@ -54,27 +55,34 @@ def concatenarTabelasIOEB():
     datasetIOEB_MUNIC = pd.concat( tabelasIOEB )
     return datasetIOEB_MUNIC
 
-tabelaItensEscolasPorMunic = concatenarTabelasItensEscolas()
-datasetIOEB_MUNIC_CONCAT = concatenarTabelasIOEB()
-listItens2015_2017 = ['COMP_POR_ALUNO(%)','MEDIA_QTD_ALUNOS_POR_ESCOLA','NUM_ESCOLAS_INTERNET_MUNIC','MEDIA_SALAS_EXISTENTES','MEDIA_PONTUACAO']
-listaValoresCorrelacoesIOEB = gerarlistaCorrelacoes(tabelaItensEscolasPorMunic, datasetIOEB_MUNIC_CONCAT, listItens2015_2017)
+def gerarGraficosCorrelacesItensXIOEB():
 
-data = pd.DataFrame({'A': listItens2015_2017,
-                    'B': listaValoresCorrelacoesIOEB})
+    tabelaItensEscolasPorMunic = concatenarTabelasItensEscolas()
+    datasetIOEB_MUNIC_CONCAT = concatenarTabelasIOEB()
+    listItens2015_2017 = ['COMP_POR_ALUNO(%)','MEDIA_QTD_ALUNOS_POR_ESCOLA','NUM_ESCOLAS_INTERNET_MUNIC','MEDIA_SALAS_EXISTENTES','MEDIA_PONTUACAO']
+    listaValoresCorrelacoesIOEB = gerarlistaCorrelacoes(tabelaItensEscolasPorMunic, datasetIOEB_MUNIC_CONCAT, listItens2015_2017)
+    
+    data = pd.DataFrame({'A': listItens2015_2017,
+                        'B': listaValoresCorrelacoesIOEB})
+    
+    data.plot.bar(x='A', y='B', rot=90)
+    plt.title('Correlação do Itens das Escolas X IOEB')
+    plt.xlabel('Itens')
+    plt.ylabel('Correlação')
+    plt.savefig('../Resultados/Graficos/correlacoesItensEscolasxIOEB.png')
+    plt.show()
+       
+    #O gráfico é gerado com a biblioteca plotly, que exige senha para gerar os gráficos
+    #Então foi criada uma conta, o grafico foi gerado, e em seguida o user e key foram retirados do código
+    #para não deixar público
+    '''data = [go.Bar(
+                x=listItens2015_2017,
+                y=listaCorrelacoesIOEB
+        )]
+    
+    py.iplot(data, filename='correlacoesItensEscolasxIOEB')'''
 
-data.plot.bar(x='A', y='B', rot=0)
-#data.plot(figsize=(4, 15),kind='barh', title='Proposta para Pernambuco')
-plt.xlabel('Anos')
-plt.ylabel('Correlação')
-plt.savefig(r'../Resultados/Graficos/correlacoesItensEscolasxIOEB.png')
 
-'''data = [go.Bar(
-            x=listItens2015_2017,
-            y=listaCorrelacoesIOEB
-    )]
-
-py.iplot(data, filename='correlacoesItensEscolasxIOEB')'''
-
-
+#gerarGraficosCorrelacesItensXIOEB()
 
 

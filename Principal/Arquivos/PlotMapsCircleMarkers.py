@@ -67,6 +67,7 @@ def dadosLocal(local):
             'localMap': coords, # [Latitude, Longitude]
             'zoomMap': zoomInicialMapa,
             'chaveMap': 'CD_GEOCUF',
+            'tipoLocal': 'Estado',
             'multiplicador': 50
         }
     else:
@@ -81,6 +82,7 @@ def dadosLocal(local):
             'localMap': coords, # [Latitude, Longitude]
             'zoomMap': zoomInicialMapa,
             'chaveMap': 'CD_GEOCODM',
+            'tipoLocal': 'Município',
             'multiplicador': 1
         }
     return RESULT
@@ -92,8 +94,8 @@ def converterTipoColunas(df, chaveMap):
     df = df.fillna(0) #Converte NaN para 0
     return df
 
-def formatarPopupMapa(tipoLocal):
-    result = "MEDIA PONTUACAO ESCOLAS POR" + tipoLocal+"- Valor Total dos Convênios (Bolhas)"
+def formatarLegendaMapa(tipoLocal):
+    result = "Média Infraestreutura Escolas por " + tipoLocal+" X Valor Convênios (Bolhas)"
     return result
 
 def plotMapCircleMarkers(local, dataframe, ano):   
@@ -111,13 +113,12 @@ def plotMapCircleMarkers(local, dataframe, ano):
     mapFolium.choropleth(geo_data=gjson, data=mapadigital,
             columns=[RESULT['chaveMap'], 'MEDIA_PONTUACAO_ESCOLAS_POR_CIDADE','TOTAL_VL_GLOBAL_PROP'],
             key_on='feature.properties.'+RESULT['chaveMap'],
-            fill_color='YlGn',
+            fill_color='RdYlGn',
             fill_opacity = 0.7,
             line_opacity = 0.2,
-            popup = 'Teste1',
-            legend_name = formatarPopupMapa('ESTADO')
+            legend_name = formatarLegendaMapa(RESULT['tipoLocal'])
             )
-    
+      
     sequencia = list(range(len(mapadigital)-1))
     list(map(lambda x: plotCirculo(x, mapadigitalGeo, mapadigital, mapFolium, RESULT['multiplicador']), sequencia)) # Add ao mapa, os marcadores circulares
                      

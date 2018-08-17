@@ -37,7 +37,7 @@ def agrupamento(x):
 
 def dadosEscolas(ano, itens):
     ESCOLAS = {
-        'nome_arquivo_csv': './Dados/escolas'+ano+'.CSV',
+        'nome_arquivo_csv': './Dados/escolas'+ano+'.csv',
         'sep':'|',
         'encoding':'ISO-8859-1',
         'itens_tabelas_escolas': itens 
@@ -91,7 +91,7 @@ def gerarTabelaPontuacaoEscolas(local, ano):
         if local != 'BR':
             df_escola = df_escola.loc[(df_escola['SIGLA'] == local)]
         
-    df_escola = df_escola.loc[(df_escola['ID_DEPENDENCIA_ADM'] == 3)] #Escolas particulares retiradas
+    df_escola = df_escola.loc[(df_escola['ID_DEPENDENCIA_ADM'] == 3)] #Apenas escolas municipais
     df_escola = df_escola.copy()
     df_escola["PONTUACAO_POR_ESCOLA"] = sum( list(map(lambda x,y: x * df_escola[itensInfra[y]], pesos, sequencia)) )
     df_escola = df_escola[['ANO_CENSO', 'FK_COD_MUNICIPIO', 'PONTUACAO_POR_ESCOLA', 'SIGLA', 'COD']] 
