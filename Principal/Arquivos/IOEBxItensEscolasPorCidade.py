@@ -42,13 +42,13 @@ def gerarlistaCorrelacoes(tabela1, tabela2, listaItens):
     return listaCorrItens
 
 def concatenarTabelasItensEscolas():
-    itensPorMunicipio2015 = pd.read_csv('../Dados/Correlacao/itens_Por_Municipio2015_out.csv',low_memory=False, sep='|')
-    itensPorMunicipio2017 = pd.read_csv('../Dados/Correlacao/itens_Por_Municipio2017_out.csv',low_memory=False, sep='|')
+    itensPorMunicipio2015 = pd.read_csv('./Dados/Correlacao/itens_Por_Municipio2015_out.csv',low_memory=False, sep='|')
+    itensPorMunicipio2017 = pd.read_csv('./Dados/Correlacao/itens_Por_Municipio2017_out.csv',low_memory=False, sep='|')
     tabelaItensEscolas = pd.concat([itensPorMunicipio2015, itensPorMunicipio2017])
     return tabelaItensEscolas
 
 def concatenarTabelasIOEB():
-    datasetIOEB_MUNIC = pd.read_csv('../Dados/Correlacao/IOEB_2015_2017_MUNIC.csv',low_memory=False, sep=';')
+    datasetIOEB_MUNIC = pd.read_csv('./Dados/Correlacao/IOEB_2015_2017_MUNIC.csv',low_memory=False, sep=';')
     datasetIOEB_MUNIC = datasetIOEB_MUNIC[['cod_munic','IOEB15', 'IOEB17']]
     listaAnos = ['2015','2017']
     tabelasIOEB = gerarListaTabelas(datasetIOEB_MUNIC, listaAnos)
@@ -69,7 +69,7 @@ def gerarGraficosCorrelacesItensXIOEB():
     plt.title('Correlação do Itens das Escolas X IOEB')
     plt.xlabel('Itens')
     plt.ylabel('Correlação')
-    plt.savefig('../Resultados/Graficos/correlacoesItensEscolasxIOEB.png')
+    plt.savefig('./Resultados/Graficos/correlacoesItensEscolasxIOEB.png')
     plt.show()
        
     #O gráfico é gerado com a biblioteca plotly, que exige senha para gerar os gráficos

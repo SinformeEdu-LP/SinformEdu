@@ -43,6 +43,8 @@ def mapaPontuacaoBR(propostaEducacao):
     mapaDigital = gpd.read_file(encontrarArquivo('Shapefiles/BR-UF/BRUFE250GC_SIR.shp'))
     mapaDigitalDt = pd.DataFrame(mapaDigital)
     propostaEducacao.drop_duplicates(inplace=True)
+    propostaEducacao.to_csv('./Resultados/Tabelas/propostaEducacao_out.csv','|')
+    
     mapaDigitalDt['CD_GEOCUF'] =  mapaDigitalDt['CD_GEOCUF'].apply(int)
     mapaAnt = pd.merge(propostaEducacao, mapaDigitalDt, on='CD_GEOCUF', how = 'inner') 
     mapa = gpd.GeoDataFrame(mapaAnt)
@@ -68,7 +70,7 @@ def agrupamento2(x):
     
     return pd.Series(result)
 
-def propostaEmendasEducacao(datasetProposta, datasetEmenda, datasetEscola2013):
+def gerarTabelaPropostaEmendasEducacao(datasetProposta, datasetEmenda, datasetEscola2013):
     estados = datasetEscola2013 
     estados = estados[['FK_COD_ESTADO', 'SIGLA']]
     estados = estados.groupby('SIGLA').apply(agrupamento1)
@@ -87,7 +89,7 @@ def gerarGraficosEmendaPorPartido():
     datasetProposta = pd.read_csv(encontrarArquivo('siconv_proposta.csv'), sep=';')
     datasetEmenda = pd.read_csv(encontrarArquivo('siconv_emenda.csv'), sep=';')
     datasetEscola2013 = pd.read_csv(encontrarArquivo('escolas2013.csv'),low_memory=False, encoding='ISO-8859-1', sep='|')       
-    propostaEmendasEducacao(datasetProposta, datasetEmenda, datasetEscola2013)
+    gerarTabelaPropostaEmendasEducacao(datasetProposta, datasetEmenda, datasetEscola2013)
 
 #gerarGraficosEmendaPorPartido()
 

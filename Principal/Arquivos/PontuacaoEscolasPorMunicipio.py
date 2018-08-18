@@ -91,7 +91,7 @@ def gerarTabelaPontuacaoEscolas(local, ano):
         if local != 'BR':
             df_escola = df_escola.loc[(df_escola['SIGLA'] == local)]
         
-    df_escola = df_escola.loc[(df_escola['ID_DEPENDENCIA_ADM'] == 3)] #Apenas escolas municipais
+    df_escola = df_escola.loc[(df_escola['ID_DEPENDENCIA_ADM'] < 4)] #Escolas particulares retiradas
     df_escola = df_escola.copy()
     df_escola["PONTUACAO_POR_ESCOLA"] = sum( list(map(lambda x,y: x * df_escola[itensInfra[y]], pesos, sequencia)) )
     df_escola = df_escola[['ANO_CENSO', 'FK_COD_MUNICIPIO', 'PONTUACAO_POR_ESCOLA', 'SIGLA', 'COD']] 
